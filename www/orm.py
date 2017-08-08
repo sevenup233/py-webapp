@@ -21,6 +21,13 @@ def create_pool(loop, **kw):
         loop=loop
     )
 
+@asyncio.coroutine
+def destory_pool(): #销毁连接池
+    global __pool
+    if __pool is not None:
+        __pool.close()
+        yield from  __pool.wait_closed()
+
 #Select
 
 @asyncio.coroutine
@@ -51,6 +58,8 @@ def execute(sql, args):
             yield from cur.close()
         except BaseException as e:
             raise
+        finally:
+            conn.close()
         return affected
 
 def create_args_string(num):
@@ -101,43 +110,48 @@ class TextField(Field):
 #定义元类Modle
 
 class ModelMetaclass(type):
-
+    # 调用__init__方法前会调用__new__方法
+    # 1.当前准备创建的类的对象  2.类的名字 3.类继承的父类集合 4.类的方法集合
     def __new__(cls, name, bases, attrs):
-        # 排除Model类本身:
-        if name=='Model':
+        if name == 'Model':
             return type.__new__(cls, name, bases, attrs)
-        # 获取table名称:
+        # 如果没设置__table__属性，tablename就是类的名字
         tableName = attrs.get('__table__', None) or name
         logging.info('found model: %s (table: %s)' % (name, tableName))
-        # 获取所有的Field和主键名:
-        mappings = dict()
+        mappings = {}
         fields = []
-        primaryKey = None
+        primarykey = None
+        # 键是列名，值是field子类
         for k, v in attrs.items():
             if isinstance(v, Field):
                 logging.info('  found mapping: %s ==> %s' % (k, v))
+                # 把键值对存入mapping字典中
                 mappings[k] = v
                 if v.primary_key:
-                    # 找到主键:
-                    if primaryKey:
-                        raise RuntimeError('Duplicate primary key for field: %s' % k)
-                    primaryKey = k
+                    #找到主键
+                    if primarykey:
+                        raise Exception('Duplicate primary key for field: %s' % k)
+                    primarykey = k
                 else:
                     fields.append(k)
-        if not primaryKey:
-            raise RuntimeError('Primary key not found.')
+        if not primarykey:
+            raise Exception('Primary key not found.')
+        # 删除类属性
         for k in mappings.keys():
             attrs.pop(k)
+        # 保存除主键外的属性名为``（运算出字符串）列表形式
         escaped_fields = list(map(lambda f: '`%s`' % f, fields))
-        attrs['__mappings__'] = mappings # 保存属性和列的映射关系
+        attrs['__mappings__'] = mappings  # 保存属性和列的映射关系
         attrs['__table__'] = tableName
-        attrs['__primary_key__'] = primaryKey # 主键属性名
-        attrs['__fields__'] = fields # 除主键外的属性名
-        # 构造默认的SELECT, INSERT, UPDATE和DELETE语句:
-        attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ', '.join(escaped_fields), tableName)
-        attrs['__insert__'] = 'insert into `%s` (%s, `%s`) values (%s)' % (tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
-        attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
-        attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
+        attrs['__primary_key__'] = primarykey  # 主键属性名
+        attrs['__fields__'] = fields  # 除主键外的属性名
+        # 反引号和repr()函数功能一致
+        attrs['__select__'] = 'select `%s`, %s from `%s`' % (primarykey, ', '.join(escaped_fields), tableName)
+        attrs['__insert__'] = 'insert into `%s` (%s, `%s`) values (%s)' % (
+        tableName, ', '.join(escaped_fields), primarykey, create_args_string(len(escaped_fields) + 1))
+        attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (
+        tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primarykey)
+        attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primarykey)
         return type.__new__(cls, name, bases, attrs)
 
 #定义Modle
