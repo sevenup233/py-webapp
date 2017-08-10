@@ -109,7 +109,7 @@ async def init(loop):
     add_routes(app, 'handlers')
     add_static(app)
     srv = await loop.create_server(app.make_handler(), '127.0.0.1', 8999)
-    logging.info('server started at http://127.0.0.1:9000...')
+    logging.info('server started at http://127.0.0.1:8999...')
     return srv
 
 loop = asyncio.get_event_loop()
