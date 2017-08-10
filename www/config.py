@@ -2,7 +2,7 @@
 
 import config_default
 
-#定义一个新的dict类
+#定义一个新的dict类,增加.serattr()功能，实现xxx.key取值的功能
 
 class Dict(dict):
     def __init__(self, names=(), values=(), **kw):
@@ -19,7 +19,7 @@ class Dict(dict):
     def __setattr__(self, key, value):
         self[key] = value
 
-#merge函数，合并两个配置文件，返回新配置文件r
+#merge函数，以overrode覆盖defaults，合并两个配置文件，返回新配置文件r
 
 def merge(defaults, override):
     r = {}
