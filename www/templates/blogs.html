@@ -1,0 +1,16 @@
+{% extends '__base__.html' %}
+
+{% block title %}日志{% endblock %}
+
+{% block content %}
+
+    {% for blog in blogs %}
+		<div class="content_block">
+            <h2><a href="/blog/{{ blog.id }}">{{ blog.name }}</a></h2>
+			<div class=content_time>发表于{{ blog.created_at|datetime }}</div>
+            <p>{{ blog.summary }}</p>
+            <p><a href="/blog/{{ blog.id }}">--> 继续阅读 <i class="uk-icon-angle-double-right"></i></a></p>
+		</div>
+    {% endfor %}
+
+{% endblock %}

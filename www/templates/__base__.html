@@ -1,0 +1,81 @@
+<!DOCTYPE html><!--Hope jinja--个人博客计划--贺泽芃 制作--><html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	{% block meta %}<!-- block meta  -->{% endblock %}
+    <link href="../static/css/main.css" rel="stylesheet" type="text/css" />
+    <title>{% block title %} ? {% endblock %} - Hope jinja</title>
+    <link rel="shortcut icon" href="../static/img/icon.png" type="image/x-icon">
+    <link rel="icon" href="../static/img/icon.png" type="image/x-icon">
+</head>
+<body>
+
+<div class="main">
+
+<!--s--header-->
+	<div class="header">
+		<div class="header_user">
+			<div class="header_top_left_title_bold">
+				Hope 神社
+			</div>
+			<div class="header_top_left_title">
+				个人博客
+			</div>	
+			<div class="header_nav"> 
+				<div class="innerNav">
+            		<div class="nav_left floatfix">
+                		<ul class="nav_list" id="js_nav">
+						{% if user %}
+                    		<div class="nav_list_item" data-toggler="drop">
+                        		<a href="#0"> {{ user.name }}</a>
+                        	<div class="nav_dropdown">
+                            	<div class="nav_dropdown_item"><a href="news/new_information.html"> 登出</a></div>
+                        	</div>
+                  			</div>
+						{% else %}
+							<a href="/signin"> 登陆</a>&nbsp&nbsp
+							<a href="/register"> 注册</a>
+						{% endif %}		
+						</ul>
+					</div>
+				</div>				
+			</div>
+		</div>
+		<div class="header_bottom"></div>
+	</div>
+<!--e--header-->
+
+<!--s--content-->
+	<div class="content">
+	{% block content %}
+    {% endblock %}
+	</div>
+<!--e--content-->
+
+<!--s--footer-->
+	<div class="footer">
+		<div class="footer_middle">
+			<p>Powered by <a href="https://github.com/sevenup233/py-webapp">Python Blog</a>. Copyright © 2017.</p>
+			<p>www.xxx.com. All rights reserved.</p>
+			<p>鸣谢：<a href="http://www.liaoxuefeng.com/" target="_blank">www.liaoxuefeng.com</a></p>
+		</div>
+	</div>
+<!--e--footer-->
+</div>
+ 
+<script src="../static/js/jquery.min.js"></script>
+<script>
+(function(){
+    $(".nav_list_item").mouseover(
+        function(){
+            $(this).find(".nav_dropdown").css("display","block");
+        }
+    );
+    $(".nav_list_item").mouseleave(
+        function(){
+            $(this).find(".nav_dropdown").css("display","none");
+        }
+    );
+})();
+</script>
+</body>
+</html>

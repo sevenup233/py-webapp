@@ -1,0 +1,128 @@
+@charset "utf-8";
+
+/************* main **************/
+
+body {
+    display: block;
+    margin: 0px;
+}
+a{text-decoration : none} 
+a:hover{text-decoration:none} 
+a:link {color:#141414;}		/* 未被访问的链接 */
+a:visited {color:#141414;}	/* 已被访问的链接 */
+a:hover {color:#1E90FF;}	/* 鼠标指针移动到链接上 */
+a:active {color:#1E90FF;}	/* 正在被点击的链接 */
+
+.main{
+	background-color:#FAF4F4;
+	color:#FCFCFC;
+}
+
+
+.floatfix{*zoom:1}
+.floatfix:after{content:"";display:table;clear:both}
+.container{margin:-4px auto;padding:0 ;max-width:1200px;*zoom:1;box-sizing:border-box;}
+.container:after{content:'';display:table;clear:both}
+
+/************* main **************/
+
+/************* header **************/
+
+.header{
+    background-color:#141414;
+}
+
+.header_user{
+	height:76px;
+	margin:0 auto;
+	padding:0 20%;
+	border-bottom: 2px solid #fcfcfc;
+}
+
+.header_bottom{
+	background-color: #141414;
+	height: 5px;
+}
+
+.header_top_left_title_bold{
+	float:left;
+	font-size:36px;
+	margin-right:20px;
+	margin-top: 16px;
+	padding-right: 20px;
+	border-right:2px solid #fcfcfc;
+}
+
+.header_top_left_title{
+	float:left;
+	font-size:20px;
+	padding-top: 30px;
+}
+
+.header_nav{
+	float: right;
+	padding-top:12px;
+}
+
+.innerNav{max-width:1200px;margin:0 auto;}
+.innerNav a:link {color:#fcfcfc;}
+.innerNav a:visited {color:#fcfcfc;}
+.innerNav a:hover {color:#1E90FF;}	
+.innerNav a:active {color:#1E90FF;}
+.nav_list { float:left;}
+.nav_list_item { position: relative; float: left; font: 20px "Microsoft Yahei";text-align: center;}
+.nav_list_item a { padding: 0 44px;color:#FFFFFF }
+.nav_dropdown { position: absolute; background: rgba(255, 255, 255, 0.75);  display: none; width: 100%; z-index: 10; margin-top: -1px; }
+.nav_dropdown_item a { line-height: 38px; p; color:black}
+.nav_list_item a:hover {color: #1e90ef;padding: 0 44px;}
+.nav_dropdown_item:hover { background: #1e90ef; }
+.nav_dropdown_item:hover a { color: #fff; }
+
+/************* header **************/
+
+/************* content **************/
+
+
+.content{
+	padding-bottom: 20px;
+	background-color: #faf4f4;
+	color:#141414;
+	width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.content_block{
+border-bottom: 1px solid #a0a0a0;
+margin-bottom: -25px;
+padding-top: 15px;
+}
+
+.content_time{
+color:#A0A0A0;
+font-size:18px;
+}
+
+
+
+/************* content **************/
+
+/************* footer **************/
+.footer{
+	text-align:center;
+	margin-top: 1px;
+	background-color: #EFECEC;
+	padding:10px;
+	color:#141414;
+	border-top: 2px solid #141414;;
+
+}
+
+.footer_middle{
+	.footer_right{
+	padding-top: 5px;
+	font-size: 25px;;
+}
+
+
+/************* footer **************/
