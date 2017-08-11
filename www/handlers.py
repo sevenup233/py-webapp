@@ -1,12 +1,15 @@
-import asyncio
-from coroweb import get,post
-
 #编写用于测试的URL处理函数
+
+import re, time, json, logging, hashlib, base64, asyncio
+
+from coroweb import get, post
+
+from models import User, Comment, Blog, next_id
+
 @get('/')
-async def handler_url_blog(request):
-    body='<h1>Awesome</h1>'
-    return body
-@get('/{name}')
-async def handler_url_greeting(*,name,request):
-    body='<h1>Greeting: %s</h1>'%name
-    return body
+async def index(request):
+    users = await User.findAll()
+    return {
+        '__template__': 'test.html',
+        'users': users
+    }
