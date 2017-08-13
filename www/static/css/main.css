@@ -71,10 +71,10 @@ a:active {color:#1E90FF;}	/* 正在被点击的链接 */
 .innerNav a:active {color:#1E90FF;}
 .nav_list { float:left;}
 .nav_list_item { position: relative; float: left; font: 20px "Microsoft Yahei";text-align: center;}
-.nav_list_item a { padding: 0 44px;color:#FFFFFF }
-.nav_dropdown { position: absolute; background: rgba(255, 255, 255, 0.75);  display: none; width: 100%; z-index: 10; margin-top: -1px; }
+.nav_list_item a { color:#FFFFFF }
+.nav_dropdown {text-align:center;background: rgba(255, 255, 255, 0.75);  display: none; width: 100%; z-index: 10; margin-top: -1px; }
 .nav_dropdown_item a { line-height: 38px; p; color:black}
-.nav_list_item a:hover {color: #1e90ef;padding: 0 44px;}
+.nav_list_item a:hover {color: #1e90ef}
 .nav_dropdown_item:hover { background: #1e90ef; }
 .nav_dropdown_item:hover a { color: #fff; }
 
@@ -93,16 +93,37 @@ a:active {color:#1E90FF;}	/* 正在被点击的链接 */
 }
 
 .content_block{
-border-bottom: 1px solid #a0a0a0;
-margin-bottom: -25px;
-padding-top: 15px;
+	border-bottom: 1px solid #a0a0a0;
+	margin-bottom: -25px;
+	padding-top: 15px;
 }
 
 .content_time{
-color:#A0A0A0;
-font-size:18px;
+	color:#A0A0A0;
+	font-size:18px;
 }
 
+.content_register_welcome{
+	text-align:center;
+	font-size:45px;
+	padding: 40px 0 20px;
+}
+
+.ccontent_register{
+	text-align:center;
+	font-size:30px;
+
+}
+
+.content_register_form{
+	margin: 20px 0 20px;
+	font-size:30px
+}
+
+.content_register_button{
+    font-size: 30px;
+    margin: 20px;
+}
 
 
 /************* content **************/

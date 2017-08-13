@@ -1,11 +1,20 @@
 <!DOCTYPE html><!--Hope jinja--个人博客计划--贺泽芃 制作--><html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="../static/css/main.css" rel="stylesheet" type="text/css">
 	{% block meta %}<!-- block meta  -->{% endblock %}
-    <link href="../static/css/main.css" rel="stylesheet" type="text/css" />
     <title>{% block title %} ? {% endblock %} - Hope jinja</title>
     <link rel="shortcut icon" href="../static/img/icon.png" type="image/x-icon">
     <link rel="icon" href="../static/img/icon.png" type="image/x-icon">
+	<script src="../static/js/jquery.float.js"></script>
+	<script src="../static/js/awesome.js"></script>
+	<script src="../static/js/jquery.min.js"></script>
+	<script src="../static/js/sha1.min.js"></script>
+	<script src="../static/js/sticky.min.js"></script>
+	<script src="../static/js/uikit.min.js"></script>
+	<script src="../static/js/vue.min.js"></script>
+		
+	{% block beforehead %}<!-- before head  -->{% endblock %}
 </head>
 <body>
 
@@ -15,8 +24,7 @@
 	<div class="header">
 		<div class="header_user">
 			<div class="header_top_left_title_bold">
-				Hope 神社
-			</div>
+			<a href="/" style="color: #fcfcfc;">Hope 神社</a></div>
 			<div class="header_top_left_title">
 				个人博客
 			</div>	
@@ -26,9 +34,9 @@
                 		<ul class="nav_list" id="js_nav">
 						{% if user %}
                     		<div class="nav_list_item" data-toggler="drop">
-                        		<a href="#0"> {{ user.name }}</a>
+                        		欢迎：<a href="#0"> {{ user.name }}</a>
                         	<div class="nav_dropdown">
-                            	<div class="nav_dropdown_item"><a href="news/new_information.html"> 登出</a></div>
+                            	<div class="nav_dropdown_item"><a href="/signout"> 登出</a></div>
                         	</div>
                   			</div>
 						{% else %}
@@ -56,13 +64,14 @@
 		<div class="footer_middle">
 			<p>Powered by <a href="https://github.com/sevenup233/py-webapp">Python Blog</a>. Copyright © 2017.</p>
 			<p>www.xxx.com. All rights reserved.</p>
-			<p>鸣谢：<a href="http://www.liaoxuefeng.com/" target="_blank">www.liaoxuefeng.com</a></p>
+			<p>鸣谢：<a href="http://ce.sysu.edu.cn/hope/" target="_blank">厚朴【HOPE】工作室</a></p>
+			<p><a href="http://www.liaoxuefeng.com/" target="_blank">www.liaoxuefeng.com</a></p>
 		</div>
 	</div>
 <!--e--footer-->
 </div>
  
-<script src="../static/js/jquery.min.js"></script>
+
 <script>
 (function(){
     $(".nav_list_item").mouseover(

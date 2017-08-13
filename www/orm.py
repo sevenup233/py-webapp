@@ -1,7 +1,7 @@
 import asyncio,aiomysql,logging
 
 #创建连接池
-def log(sql):
+def log(sql,args=()):
     logging.info("SQL: %s"%(sql))
 
 @asyncio.coroutine
@@ -32,7 +32,7 @@ def destory_pool(): #销毁连接池
 
 @asyncio.coroutine
 def select(sql, args, size=None):
-    log(sql,*args)
+    log(sql,args)
     global __pool
     with (yield from __pool) as conn:
         cur = yield from conn.cursor(aiomysql.DictCursor)
