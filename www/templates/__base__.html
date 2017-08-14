@@ -33,14 +33,19 @@
                 		<ul class="nav_list" id="js_nav">
 						{% if user %}
                     		<div class="nav_list_item" data-toggler="drop">
-                        		欢迎：<a href="#0"> {{ user.name }}</a>
+                        		欢迎：&nbsp&nbsp<a href="#0">{% if user.admin %}管理员{% endif %}{{ user.name }}</a>
                         	<div class="nav_dropdown">
+								{% if user.admin %}
+								<div class="nav_dropdown_item"><a href="/manage/edit"> 发布文章</a></div>
+								{% endif %}
                             	<div class="nav_dropdown_item"><a href="/signout"> 登出</a></div>
                         	</div>
                   			</div>
 						{% else %}
-							<a href="/signin"> 登陆</a>&nbsp&nbsp
-							<a href="/register"> 注册</a>
+							<div class="header_none">
+								<a href="/signin"> 登陆</a>&nbsp&nbsp
+								<a href="/register"> 注册</a>
+							</div>
 						{% endif %}		
 						</ul>
 					</div>

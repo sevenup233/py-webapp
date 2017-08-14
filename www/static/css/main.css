@@ -25,16 +25,16 @@ a:active{color:#1E90FF;}
 .header_top_left_title_bold{float:left;font-size:36px;margin-right:20px;margin-top: 16px;padding-right: 20px;border-right:2px solid #fcfcfc;}
 .header_top_left_title{float:left;font-size:20px;padding-top: 30px;}
 .header_nav{float: right;padding-top:12px;}
+.header_none a{color:#fcfcfc}
 .innerNav{max-width:1200px;margin:0 auto;}
-.innerNav a:link{color:#fcfcfc;}
-.innerNav a:visited{color:#fcfcfc;}
 .innerNav a:hover{color:#1E90FF;}
 .innerNav a:active{color:#1E90FF;}
 .nav_list{float:left;}
 .nav_list_item{position: relative;float: left;font: 20px "Microsoft Yahei";text-align: center;}
 .nav_list_item a{color:#FFFFFF}
 .nav_dropdown{text-align:center;background: rgba(255, 255, 255, 0.75);display: none;width: 100%;z-index: 10;margin-top: -1px;}
-.nav_dropdown_item a{line-height: 38px;p;color:black}
+.nav_dropdown_item{line-height: 38px;}
+.nav_dropdown_item a{color:#141414}
 .nav_list_item a:hover{color: #1e90ef}
 .nav_dropdown_item:hover{background: #1e90ef;}
 .nav_dropdown_item:hover a{color: #fff;}
@@ -46,10 +46,22 @@ a:active{color:#1E90FF;}
 .content{padding-bottom: 20px;background-color: #faf4f4;color:#141414;width: 60%;margin-left: auto;margin-right: auto;}
 .content_block{border-bottom: 1px solid #a0a0a0;margin-bottom: -25px;padding-top: 15px;}
 .content_time{color:#A0A0A0;font-size:18px;}
-.content_register_welcome{text-align:center;font-size:45px;padding: 40px 0 20px;}
-.ccontent_register{text-align:center;font-size:30px;}
+
+/**** content_register ****/
+.content_register_welcome{text-align:center;font-size:45px;padding: 40px 0 20px;border-bottom: 1px solid #a0a0a0;}
+.ccontent_register{text-align:center;font-size:30px;padding:20px 0}
 .content_register_form{margin: 20px 0 20px;font-size:30px}
 .content_register_button{font-size: 30px;margin: 20px;}
+/**** content_register ****/
+
+/**** content_editblog ****/
+.content_editblog{font-size:45px;padding: 40px 0 20px;border-bottom: 1px solid #a0a0a0;}
+.content_editblog_body{padding:20px 0 20px;font-size:30px}
+.content_editblog_form{margin: 20px 0 20px;font-size:30px;width: 100%;}
+.content_editblog_button{font-size: 30px;margin: 20px 0;}
+/**** content_editblog ****/
+
+
 
 /************* content **************/
 

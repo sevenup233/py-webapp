@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-__author__ = 'Michael Liao'
-
-'''
-async web application.
-'''
-
 import logging; logging.basicConfig(level=logging.INFO)
 
 import asyncio, os, json, time

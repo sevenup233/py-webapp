@@ -1,5 +1,4 @@
 {% extends '__base__.html' %}
-
 {% block title %}注册{% endblock %}
 {% block beforehead %}
 <script>
@@ -58,13 +57,13 @@ $(function () {
 	</div>
 	<div class="ccontent_register">
         <form id="vm" v-on="submit:submit">
-                <label>用户名:</label></br>
+                <label>用户名</label></br>
                     <input class="content_register_form" v-model="name" type="text" maxlength="50" placeholder="50字以内中英文"></br>
-                <label>电子邮件:</label></br>
+                <label>邮箱</label></br>
                     <input class="content_register_form" v-model="email" type="text" maxlength="50" placeholder="每个邮箱仅能绑定一个账号"></br>
-                <label>密码:</label></br>
+                <label>密码</label></br>
                     <input class="content_register_form" v-model="password1" type="password" maxlength="50" placeholder="密码长度至少6个字符"></br>
-                <label>确认密码:</label></br>
+                <label>确认密码</label></br>
                     <input class="content_register_form" v-model="password2" type="password" maxlength="50" placeholder="密码长度至少6个字符"></br>
                 <button class="content_register_button" type="submit">注册</button>
         </form>

@@ -1,0 +1,74 @@
+{% extends '__base__.html' %}
+
+{% block title %}编辑日志{% endblock %}
+
+{% block beforehead %}
+
+<script>
+var
+    ID = '{{ id }}',
+    action = '{{ action }}';
+function initVM(blog) {
+    var vm = new Vue({
+        el: '#vm',
+        data: blog,
+        methods: {
+            submit: function (event) {
+                event.preventDefault();
+                var $form = $('#vm').find('form');
+                $form.postJSON(action, this.$data, function (err, r) {
+                    if (err) {
+						alert('最起码都写点吧...')
+                        $form.showFormError(err);
+                    }
+                    else {
+						alert('发布成功！')
+                        return location.assign('/');
+                    }
+                });
+            }
+        }
+    });
+    $('#vm').show();
+}
+$(function () {
+    if (ID) {
+        getJSON('/api/blogs/' + ID, function (err, blog) {
+            if (err) {
+                return fatal(err);
+            }
+            $('#loading').hide();
+            initVM(blog);
+        });
+    }
+    else {
+        $('#loading').hide();
+        initVM({
+            name: '',
+            summary: '',
+            content: ''
+        });
+    }
+});
+</script>
+
+{% endblock %}
+
+{% block content %}
+	<div class="content_editblog">
+		<strong>发布文章</strong>
+	</div>
+    <div id="vm" class="content_editblog_body">
+        <form v-on="submit: submit">
+                <label>标题</label></br>
+                    <input v-model="name" name="name" type="text" class="content_editblog_form"></br>
+                <label>摘要</label></br>
+                    <textarea v-model="summary" rows="4" name="summary" class="content_editblog_form"></textarea></br>
+                <label>内容</label></br>
+                    <textarea v-model="content" rows="16" name="content" class="content_editblog_form"></textarea></br>
+                <button type="submit" class="content_editblog_button">发布</button>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}
