@@ -1,0 +1,83 @@
+{% extends '__base__.html' %}
+
+{% block title %}{{ blog.name }}{% endblock %}
+
+{% block beforehead %}
+
+<script>
+var comment_url = '/api/blogs/{{ blog.id }}/comments';
+$(function () {
+    var $form = $('#form-comment');
+    $form.submit(function (e) {
+        e.preventDefault();
+        $form.showFormError('');
+        var content = $form.find('textarea').val().trim();
+        if (content==='') {
+            alert('起码要说几个字啊...');
+			return $form.showFormError('起码要说几个字啊...');
+        }
+        $form.postJSON(comment_url, { content: content }, function (err, result) {
+            if (err) {
+                return $form.showFormError(err);
+            }
+			alert('评论成功！')
+            refresh();
+        });
+    });
+});
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+	<div class="content_article">
+        <article>
+            <h2>{{ blog.name }}</h2>
+			<p></p>
+			<div class="content_article_time">
+            	由&nbsp{{ blog.user_name }}&nbsp发表于&nbsp{{ blog.created_at|datetime }}
+				</div>
+            <p>{{ blog.html_content|safe }}</p>
+        </article>
+	</div>
+	
+
+	<div class="content_comment">
+        <strong>最新评论</strong>
+		
+            {% for comment in comments %}
+			
+                <article>
+                    <header>
+                        <p>{{ comment.user_name }} {% if comment.user_id==blog.user_id %}(作者){% endif %}</p>
+                        <p class="content_article_time">{{ comment.created_at|datetime }}</p>
+                    </header>
+                        {{ comment.html_content|safe }}
+                </article>
+				<hr>
+            {% else %}
+			
+            <p>还没有人评论...</p>
+			
+            {% endfor %}
+	</div>
+	
+    {% if __user__ %}
+	
+	<div class="content_comment_post">
+        <strong>发表评论</strong>
+        <article>
+            <header>
+                <p>当前用户：&nbsp{{ __user__.name }}</p>
+            </header>
+                <form id="form-comment">
+                        <textarea rows="3" placeholder="说点什么吧" style="width:100%;resize:none;font-size:20px"></textarea>
+                        <button type="submit" class="content_article_botton">发表评论</button>
+                </form>
+        </article>
+	</div>
+
+    {% endif %}
+	
+{% endblock %}

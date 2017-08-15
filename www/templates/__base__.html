@@ -1,4 +1,5 @@
 <!DOCTYPE html><!--Hope jinja--个人博客计划--贺泽芃 制作--><html>
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link href="../static/css/main.css" rel="stylesheet" type="text/css">
@@ -6,13 +7,13 @@
     <title>{% block title %} ? {% endblock %} - Hope jinja</title>
     <link rel="shortcut icon" href="../static/img/icon.png" type="image/x-icon">
     <link rel="icon" href="../static/img/icon.png" type="image/x-icon">
-	<script src="../static/js/jquery.float.js"></script>
-	<script src="../static/js/awesome.js"></script>
 	<script src="../static/js/jquery.min.js"></script>
 	<script src="../static/js/sha1.min.js"></script>
-	<script src="../static/js/sticky.min.js"></script>
 	<script src="../static/js/uikit.min.js"></script>
+	<script src="../static/js/sticky.min.js"></script>
 	<script src="../static/js/vue.min.js"></script>
+	<script src="../static/js/awesome.js"></script>
+	<script src="../static/js/jquery.float.js"></script>
 	{% block beforehead %}<!-- before head  -->{% endblock %}
 </head>
 <body>
@@ -33,10 +34,13 @@
                 		<ul class="nav_list" id="js_nav">
 						{% if user %}
                     		<div class="nav_list_item" data-toggler="drop">
-                        		欢迎：&nbsp&nbsp<a href="#0">{% if user.admin %}管理员{% endif %}{{ user.name }}</a>
+                        		欢迎：&nbsp&nbsp{% if user.admin %}管理员{% endif %}{{ user.name }}
                         	<div class="nav_dropdown">
 								{% if user.admin %}
-								<div class="nav_dropdown_item"><a href="/manage/edit"> 发布文章</a></div>
+								<div class="nav_dropdown_item"><a href="/manage/create"> 发布文章</a></div>
+								<div class="nav_dropdown_item"><a href="/manage/blogs"> 文章管理</a></div>
+								<div class="nav_dropdown_item"><a href="/manage/comments"> 评论管理</a></div>
+								<div class="nav_dropdown_item"><a href="/manage/users"> 用户管理</a></div>
 								{% endif %}
                             	<div class="nav_dropdown_item"><a href="/signout"> 登出</a></div>
                         	</div>

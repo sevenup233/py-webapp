@@ -21,15 +21,19 @@ $(function () {
                 var $form = $('#vm');
                 if (! this.name.trim()) {
                     alert('请输入正确的名字');
+					return $form.showFormError('请输入名字');					
                 }
                 if (! validateEmail(this.email.trim().toLowerCase())) {
                     alert('请输入正确的Email地址');
+					return $form.showFormError('请输入正确的Email地址');	
                 }
                 if (this.password1.length < 6) {
-                    alert('密码长度至少为6个字符');
+					alert('密码长度至少为6个字符');
+				    return $form.showFormError('口令长度至少为6个字符');
                 }
                 if (this.password1 !== this.password2) {
                     alert('两次输入的密码不一致');
+					return $form.showFormError('两次输入的口令不一致');
                 }
                 var email = this.email.trim().toLowerCase();
                 $form.postJSON('/api/users', {

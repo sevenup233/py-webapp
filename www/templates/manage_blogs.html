@@ -1,0 +1,112 @@
+{% extends '__base__.html' %}
+{% macro pagination(url, page) %}
+	
+        {% if page.has_previous %}
+            <a href="{{ url }}{{ page.page_index - 1 }}"><<</a>
+        {% else %}
+            <span><<</span>
+        {% endif %}
+		
+		{% for pages in range(index_num) %}	
+			{% if pages+1 == page.page_index %}
+				<span style="border: 1px solid #a0a0a0;">{{ pages+1 }}</span>
+			{% else %}
+				<a href="{{ url }}{{ pages+1 }}">{{pages+1}}</a> 
+			{% endif %}	
+		{% endfor %}	
+			
+        {% if page.has_next %}
+            <a href="{{ url }}{{ page.page_index + 1 }}">>></a>
+        {% else %}
+            <span>>></span>
+        {% endif %}
+		
+{% endmacro %}
+{% block title %}日志管理{% endblock %}
+
+{% block beforehead %}
+
+<script>
+function initVM(data) {
+    var vm = new Vue({
+        el: '#vm',
+        data: {
+            blogs: data.blogs,
+            page: data.page
+        },
+        methods: {
+            edit_blog: function (blog) {
+                location.assign('/edit/' + blog.id);
+            },
+            delete_blog: function (blog) {
+                if (confirm('确认要删除“' + blog.name + '”？删除后不可恢复！')) {
+                    postJSON('/api/blogs/' + blog.id + '/delete', function (err, r) {
+                        if (err) {
+                            return alert(err.message || err.error || err);
+                        }
+                        refresh();
+                    });
+                }
+            }
+        }
+    });
+    $('#vm').show();
+}
+$(function() {
+    getJSON('/api/blogs', {
+        page: {{ page_index }}
+    }, function (err, results) {
+        if (err) {
+            return fatal(err);
+        }
+        $('#loading').hide();
+        initVM(results);
+    });
+});
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+	<div class="content_manage_blogs">
+        <strong>文章管理</strong>
+		<a href="/manage/comments" class="content_manage_link">评论管理</a>
+		<a href="/manage/users" class="content_manage_link">用户管理</a>
+		<a href="/manage/create" class="content_manage_link">发布新文章</a>
+	</div>
+    <div id="vm" >
+        <table class="content_manage_blogs_tb">
+            <thead>
+                <tr class="content_manage_blogs_tb_title">
+                    <th>标题</th>
+                    <th>作者</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-repeat="blog: blogs" >
+                    <td>
+                        <a target="_blank" v-attr="href: '/blog/'+blog.id" v-text="blog.name"></a>
+                    </td>
+                    <td>
+                        <p v-text="blog.user_name"></p>
+                    </td>
+                    <td>
+                        <span v-text="blog.created_at.toDateTime()"></span>
+                    </td>
+                    <td>
+                        <a href="#0" v-on="click: edit_blog(blog)">编辑</a>&nbsp
+                        <a href="#0" v-on="click: delete_blog(blog)">删除</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+		<div class="page_others">
+		翻页：
+	{{ pagination('?page=', page) }}
+		</div>
+    </div>
+
+{% endblock %}

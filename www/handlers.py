@@ -1,22 +1,48 @@
-#编写用于测试的URL处理函数
+#URL处理
 
-import re, time, json, logging, hashlib, base64, asyncio
-
+import re, time, json, logging, hashlib, base64, asyncio, math
+import markdown2 
 from aiohttp import web
-
 from coroweb import get, post
-from apis import APIValueError, APIResourceNotFoundError
-
+from apis import APIValueError, APIResourceNotFoundError, Page
 from models import User, Comment, Blog, next_id
 from config import configs
 
-
-
+#--------------------- ↓ 几个定义 ↓ ---------------------#
 
 #定义cookie
-
 COOKIE_NAME = 'session'
 _COOKIE_KEY = configs.session.secret
+
+#验证登录
+def check_admin(request):
+    if request.__user__ is None or not request.__user__.admin:
+        raise APIPermissionError()
+
+#日志页数
+def get_page_index(page_str):
+    p = 1
+    try:
+        p = int(page_str)
+    except ValueError as e:
+        pass
+    if p < 1:
+        p = 1
+    return p
+
+#内容页翻页
+def text2html(text):
+    lines = map(lambda s: '<p>%s</p>' % s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'), filter(lambda s: s.strip() != '', text.split('\n')))
+    return ''.join(lines)
+
+#确定邮箱
+_RE_EMAIL = re.compile(r'^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$')
+_RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
+
+
+#--------------------- ↑ 几个定义 ↑ ---------------------#
+
+#--------------------- ↓ cookie ↓ ---------------------#
 
 #创建加密cookie
 
@@ -59,91 +85,12 @@ def cookie2user(cookie_str):
         logging.exception(e)
         return None
 
-#验证登录
-
-def check_admin(request):
-    if request.__user__ is None or not request.__user__.admin:
-        raise APIPermissionError()
-
-#首页日志数
-
-def get_page_index(page_str):
-    p = 1
-    try:
-        p = int(page_str)
-    except ValueError as e:
-        pass
-    if p < 1:
-        p = 1
-    return p
-
-#加行数
-
-def text2html(text):
-    lines = map(lambda s: '<p>%s</p>' % s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'), filter(lambda s: s.strip() != '', text.split('\n')))
-    return ''.join(lines)
-
-#创建日志页
-
-@get('/manage/edit')
-def manage_create_blog(*,request):
-    return {
-        '__template__': 'manage_blog_edit.html',
-        'id': '',
-        'action': '/api/blogs',
-        'user': request.__user__ ,
-    }
-#首页
-
-@get('/')
-def index(request):
-    summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-    blogs = [
-        Blog(id='1', name='Test Blog', summary=summary, created_at=time.time()-120),
-        Blog(id='2', name='Something New', summary=summary, created_at=time.time()-3600),
-        Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time()-7200)
-    ]
-    return {
-        '__template__': 'blogs.html',
-        'blogs': blogs ,
-        'user': request.__user__ ,
-    }
+#--------------------- ↑ cookie ↑ ---------------------#
 
 
+#--------------------- ↓ API模块 ↓ ---------------------#
 
-#注册页
-
-@get('/register')
-def register():
-    return {
-        '__template__': 'register.html'
-    }
-
-#登录页
-
-@get('/signin')
-def signin():
-    return {
-        '__template__': 'signin.html'
-    }
-
-#具体日志页
-
-@get('/blog/{id}')
-def get_blog(id):
-    blog = yield from Blog.find(id)
-    comments = yield from Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
-    for c in comments:
-        c.html_content = text2html(c.content)
-    blog.html_content = markdown2.markdown(blog.content)
-    return {
-        '__template__': 'blog.html',
-        'blog': blog,
-        'comments': comments
-    }
-
-#api页面，验证登陆
-
+#登录验证
 @post('/api/authenticate')
 def authenticate(*, email, passwd):
     if not email:
@@ -169,21 +116,7 @@ def authenticate(*, email, passwd):
     r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
     return r
 
-#登出页
-
-@get('/signout')
-def signout(request):
-    referer = request.headers.get('Referer')
-    r = web.HTTPFound(referer or '/')
-    r.set_cookie(COOKIE_NAME, '-deleted-', max_age=0, httponly=True)
-    logging.info('user signed out.')
-    return r
-
-_RE_EMAIL = re.compile(r'^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$')
-_RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
-
-#api页面，验证注册
-
+#注册验证
 @post('/api/users')
 def api_register_user(*, email, name, passwd):
     if not name or not name.strip():
@@ -207,8 +140,7 @@ def api_register_user(*, email, name, passwd):
     r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
     return r
 
-#生成日志api
-
+#创建日志
 @post('/api/blogs')
 def api_create_blog(request, *, name, summary, content):
     check_admin(request)
@@ -222,10 +154,241 @@ def api_create_blog(request, *, name, summary, content):
     yield from blog.save()
     return blog
 
+#修改日志
+@post('/api/blogs/{id}')
+def api_update_blog(id, request, *, name, summary, content):
+    check_admin(request)
+    blog = yield from Blog.find(id)
+    if not name or not name.strip():
+        raise APIValueError('name', 'name cannot be empty.')
+    if not summary or not summary.strip():
+        raise APIValueError('summary', 'summary cannot be empty.')
+    if not content or not content.strip():
+        raise APIValueError('content', 'content cannot be empty.')
+    blog.name = name.strip()
+    blog.summary = summary.strip()
+    blog.content = content.strip()
+    yield from blog.update()
+    return blog
 
-#api获取日志
+#删除日志
+@post('/api/blogs/{id}/delete')
+def api_delete_blog(request, *, id):
+    check_admin(request)
+    blog = yield from Blog.find(id)
+    yield from blog.remove()
+    return dict(id=id)
 
+
+#获取日志
+@get('/api/blogs')
+def api_blogs(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, blogs=())
+    blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, blogs=blogs)
+
+#修改日志
 @get('/api/blogs/{id}')
 def api_get_blog(*, id):
     blog = yield from Blog.find(id)
     return blog
+
+#获取评论
+@get('/api/comments')
+def api_comments(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Comment.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, comments=())
+    comments = yield from Comment.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, comments=comments)
+
+#创建评论
+@post('/api/blogs/{id}/comments')
+def api_create_comment(id, request, *, content):
+    user = request.__user__
+    if user is None:
+        raise APIPermissionError('Please signin first.')
+    if not content or not content.strip():
+        raise APIValueError('content')
+    blog = yield from Blog.find(id)
+    if blog is None:
+        raise APIResourceNotFoundError('Blog')
+    comment = Comment(blog_id=blog.id, user_id=user.id, user_name=user.name, user_image=user.image, content=content.strip())
+    yield from comment.save()
+    return comment
+
+#删除评论
+@post('/api/comments/{id}/delete')
+def api_delete_comments(id, request):
+    check_admin(request)
+    c = yield from Comment.find(id)
+    if c is None:
+        raise APIResourceNotFoundError('Comment')
+    yield from c.remove()
+    return dict(id=id)
+
+#获取用户
+@get('/api/users')
+def api_get_users(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from User.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, users=())
+    users = yield from User.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    for u in users:
+        u.passwd = '******'
+    return dict(page=p, users=users)
+
+#--------------------- ↑ API模块 ↑ ---------------------#
+
+
+#--------------------- ↓ 管理模块 ↓ ---------------------#
+
+#默认管理页
+@get('/manage/')
+def manage():
+    return 'redirect:/manage/blogs'
+
+#创建日志
+@get('/manage/create')
+def manage_create_blog(*,request):
+    return {
+        '__template__': 'manage_blog_edit.html',
+        'id': '',
+        'action': '/api/blogs',
+        'user': request.__user__ ,
+    }
+
+#日志列表 *默认管理页*
+@get('/manage/blogs')
+def manage_blogs(*, page='1',request):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    p = Page(num ,page_index)
+    index_num = math.ceil(num/6)
+    return {
+        '__template__': 'manage_blogs.html',
+        'page_index': get_page_index(page) ,
+        'user': request.__user__ ,
+        'page': p ,
+        'index_num': index_num
+    }
+
+#评论列表
+@get('/manage/comments')
+def manage_comments(*, page='1',request):
+    page_index = get_page_index(page)
+    num = yield from Comment.findNumber('count(id)')
+    p = Page(num ,page_index)
+    index_num = math.ceil(num/6)
+    return {
+        '__template__': 'manage_comments.html',
+        'page_index': get_page_index(page) ,
+        'user': request.__user__ ,
+        'page': p ,
+        'index_num': index_num
+
+    }
+
+
+#修改日志
+@get('/edit/{id}')
+def manage_edit_blog(*, id ,request):
+    return {
+        '__template__': 'manage_blog_edit.html',
+        'id': id,
+        'action': '/api/blogs/%s' % id ,
+        'user': request.__user__ ,
+    }
+
+#用户列表
+@get('/manage/users')
+def manage_users(*, page='1' ,request):
+
+    page_index = get_page_index(page)
+    num = yield from User.findNumber('count(id)')
+    p = Page(num ,page_index)
+    index_num = math.ceil(num/6)
+    return {
+        '__template__': 'manage_users.html',
+        'page_index': get_page_index(page),
+        'user': request.__user__ ,
+        'page': p ,
+        'index_num': index_num
+    }
+
+
+#--------------------- ↑ 管理模块 ↑ ---------------------#
+
+
+#--------------------- ↓ 用户模块 ↓ ---------------------#
+
+#首页
+@get('/')
+def index(*, page='1',request):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    page = Page(num ,page_index)
+    index_num = math.ceil(num/6)
+    if num == 0:
+        blogs = []
+        index_num = 1
+    else:
+        blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(page.offset, page.limit))
+    return {
+        '__template__': 'blogs.html',
+        'page': page ,
+        'blogs': blogs ,
+        'user': request.__user__ ,
+        'index_num': index_num
+    }
+
+#注册页
+@get('/register')
+def register():
+    return {
+        '__template__': 'register.html'
+    }
+
+#登录页
+@get('/signin')
+def signin():
+    return {
+        '__template__': 'signin.html'
+    }
+
+#登出页
+@get('/signout')
+def signout(request):
+    referer = request.headers.get('Referer')
+    r = web.HTTPFound(referer or '/')
+    r.set_cookie(COOKIE_NAME, '-deleted-', max_age=0, httponly=True)
+    logging.info('user signed out.')
+    return r
+
+
+#日志详情页
+@get('/blog/{id}')
+def get_blog(id,*,request):
+    blog = yield from Blog.find(id)
+    comments = yield from Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
+    for c in comments:
+        c.html_content = text2html(c.content)
+    blog.html_content = markdown2.markdown(blog.content)
+    return {
+        '__template__': 'blog.html',
+        'blog': blog,
+        'comments': comments ,
+        'user': request.__user__ ,
+    }
+
+
+
+#--------------------- ↑ 用户模块 ↑ ---------------------#

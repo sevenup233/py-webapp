@@ -1,0 +1,115 @@
+{% extends '__base__.html' %}
+{% macro pagination(url, page) %}
+	
+        {% if page.has_previous %}
+            <a href="{{ url }}{{ page.page_index - 1 }}"><<</a>
+        {% else %}
+            <span><<</span>
+        {% endif %}
+		
+		{% for pages in range(index_num) %}	
+			{% if pages+1 == page.page_index %}
+				<span style="border: 1px solid #a0a0a0;">{{ pages+1 }}</span>
+			{% else %}
+				<a href="{{ url }}{{ pages+1 }}">{{pages+1}}</a> 
+			{% endif %}	
+		{% endfor %}	
+			
+        {% if page.has_next %}
+            <a href="{{ url }}{{ page.page_index + 1 }}">>></a>
+        {% else %}
+            <span>>></span>
+        {% endif %}
+		
+{% endmacro %}
+{% block title %}评论{% endblock %}
+
+{% block beforehead %}
+
+<script>
+
+function initVM(data) {
+    $('#vm').show();
+    var vm = new Vue({
+        el: '#vm',
+        data: {
+            comments: data.comments,
+            page: data.page,
+			blogs: data.blogs
+        },
+        methods: {
+            delete_comment: function (comment) {
+                var content = comment.content.length > 20 ? comment.content.substring(0, 20) + '...' : comment.content;
+                if (confirm('确认要删除评论“' + comment.content + '”？删除后不可恢复！')) {
+                    postJSON('/api/comments/' + comment.id + '/delete', function (err, r) {
+                        if (err) {
+                            return error(err);
+                        }
+                        refresh();
+                    });
+                }
+            }
+        }
+    });
+}
+
+$(function() {
+    getJSON('/api/comments', {
+        page: {{ page_index }}
+    }, function (err, results) {
+        if (err) {
+            return fatal(err);
+        }
+        $('#loading').hide();
+        initVM(results);
+    });
+});
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+	<div class="content_manage_blogs">
+        <strong>评论管理</strong>
+		<a href="/manage/blogs" class="content_manage_link">文章管理</a>
+		<a href="/manage/users" class="content_manage_link">用户管理</a>
+		<a href="/manage/create" class="content_manage_link">发布新文章</a>
+	</div>
+    <div id="vm" >
+        <table class="content_manage_blogs_tb">
+            <thead>
+                <tr class="content_manage_blogs_tb_title">
+                    <th>作者</th>
+					<th>文章</th>
+                    <th>内容</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-repeat="comment: comments" >
+                    <td>
+                        <span v-text="comment.user_name"></span>
+                    </td>
+                    <td>
+                        <span v-text="blog_name"></span>
+                    </td>
+                    <td style="max-width:420px">
+                        <span v-text="comment.content"></span>
+                    </td>
+                    <td>
+                        <p v-text="comment.created_at.toDateTime()"></p>
+                    </td>
+                    <td>
+                        <a href="#0" v-on="click: delete_comment(comment)">删除</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+		<div class="page_others">
+		翻页：
+	{{ pagination('?page=', page) }}
+		</div>
+    </div>
+{% endblock %}

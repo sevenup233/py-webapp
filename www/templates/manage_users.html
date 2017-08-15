@@ -1,0 +1,106 @@
+{% extends '__base__.html' %}
+{% macro pagination(url, page) %}
+	
+        {% if page.has_previous %}
+            <a href="{{ url }}{{ page.page_index - 1 }}"><<</a>
+        {% else %}
+            <span><<</span>
+        {% endif %}
+		
+		{% for pages in range(index_num) %}	
+			{% if pages+1 == page.page_index %}
+				<span style="border: 1px solid #a0a0a0;">{{ pages+1 }}</span>
+			{% else %}
+				<a href="{{ url }}{{ pages+1 }}">{{pages+1}}</a> 
+			{% endif %}	
+		{% endfor %}	
+			
+        {% if page.has_next %}
+            <a href="{{ url }}{{ page.page_index + 1 }}">>></a>
+        {% else %}
+            <span>>></span>
+        {% endif %}
+		
+{% endmacro %}
+{% block title %}用户{% endblock %}
+
+{% block beforehead %}
+
+<script>
+
+function initVM(data) {
+    $('#vm').show();
+    var vm = new Vue({
+        el: '#vm',
+        data: {
+            users: data.users,
+            page: data.page
+        }
+    });
+}
+
+$(function() {
+    getJSON('/api/users', {
+        page: {{ page_index }}
+    }, function (err, results) {
+        if (err) {
+            return fatal(err);
+        }
+        $('#loading').hide();
+        initVM(results);
+    });
+});
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+	<div class="content_manage_blogs">
+        <strong>用户管理</strong>
+		<a href="/manage/blogs" class="content_manage_link">文章管理</a>
+		<a href="/manage/comments" class="content_manage_link">评论管理</a>
+		<a href="/manage/create" class="content_manage_link">发布新文章</a>
+	</div>
+    <div id="vm" >
+        <table class="content_manage_blogs_tb">
+            <thead>
+                <tr class="content_manage_blogs_tb_title">
+                    <th>名字</th>
+                    <th>电子邮件</th>
+                    <th>注册时间</th>
+					<th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-repeat="user: users" >
+                    <td>
+                        <span v-text="user.name"></span>
+                        <span v-if="user.admin" style="color:#d05">管理员</span>
+                    </td>
+                    <td>
+                        <p v-text="user.email"></p>
+                    </td>
+                    <td>
+                        <span v-text="user.created_at.toDateTime()"></span>
+                    </td>
+					<td>
+                        <a href="#0" v-on="click: ">删除</a>&nbsp
+						<a href="#0" v-on="click: ">升级</a>&nbsp
+						<a href="#0" v-if="user.admin" v-on="click: ">降级</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>	
+		</div>
+		
+<!--  http://localhost:9000/manage/users?page=2 -->		
+
+		<div class="page_others">
+		翻页：
+	{{ pagination('?page=', page) }}
+		</div>
+    </div>
+
+{% endblock %}
