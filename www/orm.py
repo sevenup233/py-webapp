@@ -1,18 +1,26 @@
+#ORM（Object-Relational Mapping）
+#基于协程封装MySQL语句
+
 import asyncio,aiomysql,logging
 
-#创建连接池
+#日志：数据库名
 def log(sql,args=()):
     logging.info("SQL: %s"%(sql))
 
+#创建连接池
 @asyncio.coroutine
 def create_pool(loop, **kw):
+    #日志：创建数据库
     logging.info('create database connection pool...')
+    #定义全局变量__pool，作为连接池
     global __pool
     __pool = yield from aiomysql.create_pool(
+        #定义连接池参数基本属性
         host=kw.get('host', 'localhost'),
         port=kw.get('port', 3306),
         user=kw['user'],
         password=kw['password'],
+        #db:database 
         db=kw['db'],
         charset=kw.get('charset', 'utf8'),
         autocommit=kw.get('autocommit', True),
@@ -21,35 +29,39 @@ def create_pool(loop, **kw):
         loop=loop
     )
 
+#销毁连接池
 @asyncio.coroutine
-def destory_pool(): #销毁连接池
+def destory_pool(): 
     global __pool
     if __pool is not None:
         __pool.close()
         yield from  __pool.wait_closed()
 
 #Select
-
 @asyncio.coroutine
 def select(sql, args, size=None):
     log(sql,args)
     global __pool
+    #打开pool
     with (yield from __pool) as conn:
+        #定义游标cur
         cur = yield from conn.cursor(aiomysql.DictCursor)
         yield from cur.execute(sql.replace('?', '%s'), args or ())
         if size:
             rs = yield from cur.fetchmany(size)
         else:
             rs = yield from cur.fetchall()
+        #关闭游标
         yield from cur.close()
         logging.info('rows returned: %s' % len(rs))
+        #rs为cur所指的对象
         return rs
 
 #Execute(Insert, Update, Delete)
-
 @asyncio.coroutine
 def execute(sql, args):
     log(sql)
+    #打开pool
     with (yield from __pool) as conn:
         try:
             cur = yield from conn.cursor()
@@ -62,14 +74,7 @@ def execute(sql, args):
             conn.close()
         return affected
 
-def create_args_string(num):
-    L = []
-    for n in range(num):
-        L.append('?')
-    return ', '.join(L)
-
-#定义Field
-
+#定义Field类来保存如Users类在数据库中每一列的属性
 class Field(object):
 
     def __init__(self, name, column_type, primary_key, default):
@@ -81,54 +86,68 @@ class Field(object):
     def __str__(self):
         return '<%s, %s:%s>' % (self.__class__.__name__, self.column_type, self.name)
 
+#定义数据类型
+
+#字符串
 class StringField(Field):
 
     def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
         super().__init__(name, ddl, primary_key, default)
 
+#是否
 class BooleanField(Field):
 
     def __init__(self, name=None, default=False):
         super().__init__(name, 'boolean', False, default)
 
+#常数
 class IntegerField(Field):
 
     def __init__(self, name=None, primary_key=False, default=0):
         super().__init__(name, 'bigint', primary_key, default)
 
+#浮点数
 class FloatField(Field):
 
     def __init__(self, name=None, primary_key=False, default=0.0):
         super().__init__(name, 'real', primary_key, default)
 
+#文本
 class TextField(Field):
 
     def __init__(self, name=None, default=None):
         super().__init__(name, 'text', False, default)
 
+#用于输出元类中创建sql_insert语句中的占位符
+def create_args_string(num):
+    L = []
+    for n in range(num):
+        L.append('?')
+    return ', '.join(L)
 
-#定义元类Modle
-
+#定义Modle的元类
 class ModelMetaclass(type):
-    # 调用__init__方法前会调用__new__方法
-    # 1.当前准备创建的类的对象  2.类的名字 3.类继承的父类集合 4.类的方法集合
+    #调用__init__方法前会调用__new__方法
+    #参数分别为：当前准备创建的类的对象，类的名字，类继承的父类集合，类的方法集合
     def __new__(cls, name, bases, attrs):
+        #对Model类的实例执行此函数
         if name == 'Model':
             return type.__new__(cls, name, bases, attrs)
-        # 如果没设置__table__属性，tablename就是类的名字
+        #如果没设置__table__属性，tablename就是类的名字
         tableName = attrs.get('__table__', None) or name
         logging.info('found model: %s (table: %s)' % (name, tableName))
+        #mappings保存attrs的映射关系
         mappings = {}
+        #fields保存主键以外的属性
         fields = []
         primarykey = None
-        # 键是列名，值是field子类
         for k, v in attrs.items():
             if isinstance(v, Field):
-                logging.info('  found mapping: %s ==> %s' % (k, v))
-                # 把键值对存入mapping字典中
+                logging.info('found mapping: %s ==> %s' % (k, v))
+                #把键值k，v对存入字典mapping中
                 mappings[k] = v
+                #找到主键
                 if v.primary_key:
-                    #找到主键
                     if primarykey:
                         raise Exception('Duplicate primary key for field: %s' % k)
                     primarykey = k
@@ -152,10 +171,11 @@ class ModelMetaclass(type):
         attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (
         tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primarykey)
         attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primarykey)
+        attrs['__raise__'] = 'update users set admin = 1 where `%s`=?' % (primarykey)
+        attrs['__lower__'] = 'update users set admin = 0 where `%s`=?' % (primarykey)
         return type.__new__(cls, name, bases, attrs)
 
-#定义Modle
-
+#定义Modle类，从ModelMetaclass继承
 class Model(dict, metaclass=ModelMetaclass):
 
     def __init__(self, **kw):
@@ -183,6 +203,7 @@ class Model(dict, metaclass=ModelMetaclass):
                 setattr(self, key, value)
         return value
 
+#定义findAll功能，从数据库中获取全部该类的数据
     @classmethod
     @asyncio.coroutine 
     def findAll(cls, where=None, args=None, **kw):
@@ -211,6 +232,7 @@ class Model(dict, metaclass=ModelMetaclass):
         rs = yield from select(' '.join(sql), args)
         return [cls(**r) for r in rs]
 
+#定义findNumber功能，根据ID从数据库中获取数据
     @classmethod
     @asyncio.coroutine 
     def findNumber(cls, selectField, where=None, args=None):
@@ -233,6 +255,7 @@ class Model(dict, metaclass=ModelMetaclass):
             return None
         return cls(**rs[0])
 
+#保存数据
     @asyncio.coroutine
     def save(self):
         args = list(map(self.getValueOrDefault, self.__fields__))
@@ -241,6 +264,7 @@ class Model(dict, metaclass=ModelMetaclass):
         if rows != 1:
             logging.warn('failed to insert record: affected rows: %s' % rows)
 
+#更新数据
     @asyncio.coroutine
     def update(self):
         args = list(map(self.getValue, self.__fields__))
@@ -249,9 +273,26 @@ class Model(dict, metaclass=ModelMetaclass):
         if rows != 1:
             logging.warn('failed to update by primary key: affected rows: %s' % rows)
 
+#删除数据
     @asyncio.coroutine
     def remove(self):
         args = [self.getValue(self.__primary_key__)]
         rows = yield from execute(self.__delete__, args)
+        if rows != 1:
+            logging.warn('failed to remove by primary key: affected rows: %s' % rows)
+
+#用户升级
+    @asyncio.coroutine
+    def raiseup(self):
+        args = [self.getValue(self.__primary_key__)]
+        rows = yield from execute(self.__raise__, args)
+        if rows != 1:
+            logging.warn('failed to remove by primary key: affected rows: %s' % rows)
+
+#用户降级
+    @asyncio.coroutine
+    def lower(self):
+        args = [self.getValue(self.__primary_key__)]
+        rows = yield from execute(self.__lower__, args)
         if rows != 1:
             logging.warn('failed to remove by primary key: affected rows: %s' % rows)

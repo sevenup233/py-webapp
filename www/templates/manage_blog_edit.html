@@ -18,7 +18,7 @@ function initVM(blog) {
                 var $form = $('#vm').find('form');
                 $form.postJSON(action, this.$data, function (err, r) {
                     if (err) {
-						alert('最起码都写点吧...')
+						alert('你写的有问题...')
                         $form.showFormError(err);
                     }
                     else {

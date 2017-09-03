@@ -67,11 +67,11 @@ a:active{color:#1E90FF;}
 /**** content_editblog ****/
 
 /**** content_blog ****/
-.content_article{padding: 15px 0 20px;border-bottom: 1px solid #a0a0a0;margin-bottom: 30px;}
+.content_article{padding: 15px 0 20px}
 .content_article_time{color:#A0A0A0;font-size:18px;}
 .content_article_botton{font-size: 15px;margin: 20px 0;}
 .content_comment_post{margin-top:20px;padding-top: 20px;}
-.content_comment{}
+.content_comment{border: 1px solid #a0a0a0;padding: 20px;margin:10px}
 /**** content_blog ****/
 
 /**** content_blogs_manage ****/

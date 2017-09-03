@@ -1,18 +1,16 @@
-import logging; logging.basicConfig(level=logging.INFO)
+#WebAPP本体，采用协程
 
+import logging; logging.basicConfig(level=logging.INFO)
 import asyncio, os, json, time
 from datetime import datetime
-
 from aiohttp import web
 from jinja2 import Environment, FileSystemLoader
-
 from config import configs
-
 import orm
 from coroweb import add_routes, add_static
-
 from handlers import cookie2user, COOKIE_NAME
 
+#初始化jinja2模板
 def init_jinja2(app, **kw):
     logging.info('init jinja2...')
     options = dict(
@@ -43,6 +41,7 @@ def logger_factory(app, handler):
         return (yield from handler(request))
     return logger
 
+#检查用户是否登录或有权限
 @asyncio.coroutine
 def auth_factory(app, handler):
     @asyncio.coroutine
@@ -55,7 +54,7 @@ def auth_factory(app, handler):
             if user:
                 logging.info('set current user: %s' % user.email)
                 request.__user__ = user
-        if request.path.startswith('/manage/') and (request.__user__ is None or not request.__user__.admin):
+        if request.path.startswith('/manage/') and (request.__user__ is None or request.__user__.admin == 0):
             return web.HTTPFound('/signin')
         return (yield from handler(request))
     return auth
@@ -115,6 +114,7 @@ def response_factory(app, handler):
         return resp
     return response
 
+#确定时间
 def datetime_filter(t):
     delta = int(time.time() - t)
     if delta < 60:
@@ -128,6 +128,7 @@ def datetime_filter(t):
     dt = datetime.fromtimestamp(t)
     return u'%s年%s月%s日' % (dt.year, dt.month, dt.day)
 
+#固定写法，初始化程序
 @asyncio.coroutine
 def init(loop):
     yield from orm.create_pool(loop=loop, **configs.db)

@@ -14,9 +14,9 @@ from config import configs
 COOKIE_NAME = 'session'
 _COOKIE_KEY = configs.session.secret
 
-#验证登录
+#验证管理员
 def check_admin(request):
-    if request.__user__ is None or not request.__user__.admin:
+    if request.__user__ is None or request.__user__.admin == 0:
         raise APIPermissionError()
 
 #日志页数
@@ -219,7 +219,7 @@ def api_create_comment(id, request, *, content):
     blog = yield from Blog.find(id)
     if blog is None:
         raise APIResourceNotFoundError('Blog')
-    comment = Comment(blog_id=blog.id, user_id=user.id, user_name=user.name, user_image=user.image, content=content.strip())
+    comment = Comment(blog_id=blog.id, blog_name=blog.name ,user_id=user.id, user_name=user.name, user_image=user.image, content=content.strip())
     yield from comment.save()
     return comment
 
@@ -245,6 +245,36 @@ def api_get_users(*, page='1'):
     for u in users:
         u.passwd = '******'
     return dict(page=p, users=users)
+
+#删除用户
+@post('/api/users/{id}/delete')
+def api_delete_users(id, request):
+    check_admin(request)
+    c = yield from User.find(id)
+    if c is None:
+        raise APIResourceNotFoundError('User')
+    yield from c.remove()
+    return dict(id=id)
+
+#用户升级
+@post('/api/users/{id}/raise')
+def api_raise_users(id, request):
+    check_admin(request)
+    c = yield from User.find(id)
+    if c is None:
+        raise APIResourceNotFoundError('User')
+    yield from c.raiseup()
+    return dict(id=id)
+
+#用户降级
+@post('/api/users/{id}/lower')
+def api_lower_users(id, request):
+    check_admin(request)
+    c = yield from User.find(id)
+    if c is None:
+        raise APIResourceNotFoundError('User')
+    yield from c.lower()
+    return dict(id=id)
 
 #--------------------- ↑ API模块 ↑ ---------------------#
 

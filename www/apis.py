@@ -1,7 +1,8 @@
+#分页与错误
+
 import json, logging, inspect, functools
 
 #分页显示blog
-
 class Page(object):
 
     '''
@@ -30,7 +31,6 @@ class Page(object):
 
 
 #各种错误异常类
-
 class APIError(Exception):
     '''
     the base APIError which contains error(required), data(optional) and message(optional).

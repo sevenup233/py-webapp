@@ -53,17 +53,26 @@ function initVM(data) {
     });
 }
 
-$(function() {
-    getJSON('/api/comments', {
-        page: {{ page_index }}
-    }, function (err, results) {
-        if (err) {
-            return fatal(err);
-        }
-        $('#loading').hide();
-        initVM(results);
-    });
-});
+$(
+function()
+	{
+    	getJSON
+		('/api/comments', 
+			{
+				page: {{ page_index }}
+			}, 
+			function (err, results) 
+			{
+        		if (err)
+					{
+            			return fatal(err);
+        			}
+        		$('#loading').hide();
+        		initVM(results);
+    		}
+		);
+	}	
+);
 </script>
 
 {% endblock %}
@@ -80,11 +89,11 @@ $(function() {
         <table class="content_manage_blogs_tb">
             <thead>
                 <tr class="content_manage_blogs_tb_title">
-                    <th>作者</th>
-					<th>文章</th>
-                    <th>内容</th>
-                    <th>创建时间</th>
-                    <th>操作</th>
+                    <th style="width:20%">作者</th>
+					<th style="width:25%">文章</th>
+                    <th style="width:25%">内容</th>
+                    <th style="width:20%">创建时间</th>
+                    <th style="width:15%">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -93,10 +102,10 @@ $(function() {
                         <span v-text="comment.user_name"></span>
                     </td>
                     <td>
-                        <span v-text="blog_name"></span>
+                        <a target="_blank" v-attr="href: '/blog/'+comment.blog_id" v-text="comment.blog_name"></a>
                     </td>
-                    <td style="max-width:420px">
-                        <span v-text="comment.content"></span>
+                    <td>
+                        <span v-text="comment.content.length > 10 ? comment.content.substring(0, 10) + '...' : comment.content"></span>
                     </td>
                     <td>
                         <p v-text="comment.created_at.toDateTime()"></p>

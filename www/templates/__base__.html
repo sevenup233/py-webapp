@@ -24,9 +24,9 @@
 	<div class="header">
 		<div class="header_user">
 			<div class="header_top_left_title_bold">
-			<a href="/" style="color: #fcfcfc;">Hope 神社</a></div>
+			<a href="/" style="color: #fcfcfc;">Hope jinja</a></div>
 			<div class="header_top_left_title">
-				个人博客
+				大家的博客
 			</div>	
 			<div class="header_nav"> 
 				<div class="innerNav">
@@ -34,13 +34,14 @@
                 		<ul class="nav_list" id="js_nav">
 						{% if user %}
                     		<div class="nav_list_item" data-toggler="drop">
-                        		欢迎：&nbsp&nbsp{% if user.admin %}管理员{% endif %}{{ user.name }}
+                        		欢迎：&nbsp&nbsp
+								{% if user.admin == 1 %}管理员{% endif %}
+								{% if user.admin == 2 %}超级管理员{% endif %}
+								{{ user.name }}
                         	<div class="nav_dropdown">
 								{% if user.admin %}
 								<div class="nav_dropdown_item"><a href="/manage/create"> 发布文章</a></div>
-								<div class="nav_dropdown_item"><a href="/manage/blogs"> 文章管理</a></div>
-								<div class="nav_dropdown_item"><a href="/manage/comments"> 评论管理</a></div>
-								<div class="nav_dropdown_item"><a href="/manage/users"> 用户管理</a></div>
+								<div class="nav_dropdown_item"><a href="/manage/blogs"> 后台管理</a></div>
 								{% endif %}
                             	<div class="nav_dropdown_item"><a href="/signout"> 登出</a></div>
                         	</div>

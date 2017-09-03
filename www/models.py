@@ -1,5 +1,7 @@
+#定义数据库中的三种基本数据类型，用户，文章，评论
+
 import time, uuid
-from orm import Model, StringField, BooleanField, FloatField, TextField
+from orm import Model, StringField, BooleanField, FloatField, TextField, IntegerField
 
 def next_id():
     return '%015d%s000' % (int(time.time() * 1000), uuid.uuid4().hex)
@@ -10,7 +12,7 @@ class User(Model):
     id = StringField(primary_key=True, default=next_id, ddl='varchar(50)')
     email = StringField(ddl='varchar(50)')
     passwd = StringField(ddl='varchar(50)')
-    admin = BooleanField()
+    admin = IntegerField()
     name = StringField(ddl='varchar(50)')
     image = StringField(ddl='varchar(500)')
     created_at = FloatField(default=time.time)
@@ -32,6 +34,7 @@ class Comment(Model):
 
     id = StringField(primary_key=True, default=next_id, ddl='varchar(50)')
     blog_id = StringField(ddl='varchar(50)')
+    blog_name = StringField(ddl='varchar(50)')
     user_id = StringField(ddl='varchar(50)')
     user_name = StringField(ddl='varchar(50)')
     user_image = StringField(ddl='varchar(500)')

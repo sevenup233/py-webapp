@@ -35,6 +35,38 @@ function initVM(data) {
         data: {
             users: data.users,
             page: data.page
+        },
+		methods: {
+            delete_user: function (user) {
+                if (confirm('确认删除改用户？删除后不可恢复！')) {
+                    postJSON('/api/users/' + user.id + '/delete', function (err, r) {
+                        if (err) {
+                            return error(err);
+                        }
+                        refresh();
+                    });
+                }
+            },
+			raise_user: function (user) {
+                if (confirm('确认升级改用户为管理员？')) {
+                    postJSON('/api/users/' + user.id + '/raise', function (err, r) {
+                        if (err) {
+                            return error(err);
+                        }
+                        refresh();
+                    });
+                }
+            },
+			lower_user: function (user) {
+                if (confirm('确认将该管理员降为普通用户？')) {
+                    postJSON('/api/users/' + user.id + '/lower', function (err, r) {
+                        if (err) {
+                            return error(err);
+                        }
+                        refresh();
+                    });
+                }
+            }
         }
     });
 }
@@ -67,17 +99,18 @@ $(function() {
         <table class="content_manage_blogs_tb">
             <thead>
                 <tr class="content_manage_blogs_tb_title">
-                    <th>名字</th>
-                    <th>电子邮件</th>
-                    <th>注册时间</th>
-					<th>操作</th>
+                    <th style="width:25%">用户名</th>
+                    <th style="width:30%">邮箱</th>
+                    <th style="width:30%">注册时间</th>
+					<th style="width:15%">操作</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-repeat="user: users" >
                     <td>
                         <span v-text="user.name"></span>
-                        <span v-if="user.admin" style="color:#d05">管理员</span>
+                        <span v-if="user.admin == 1" style="color:#d05">管理员</span>
+						<span v-if="user.admin == 2" style="color:#1E90FF">超级管理员</span>
                     </td>
                     <td>
                         <p v-text="user.email"></p>
@@ -86,9 +119,12 @@ $(function() {
                         <span v-text="user.created_at.toDateTime()"></span>
                     </td>
 					<td>
-                        <a href="#0" v-on="click: ">删除</a>&nbsp
-						<a href="#0" v-on="click: ">升级</a>&nbsp
-						<a href="#0" v-if="user.admin" v-on="click: ">降级</a>
+                        <a href="#0" v-if="user.admin == 0" v-on="click: delete_user(user)">删除&nbsp</a>
+						{% if user.admin == 2 %}
+						<a href="#0" v-if="user.admin == 1" v-on="click: delete_user(user) ">删除&nbsp</a>
+						<a href="#0" v-if="user.admin == 0" v-on="click: raise_user(user)">升级&nbsp</a>
+						<a href="#0" v-if="user.admin == 1" v-on="click: lower_user(user)">降级&nbsp</a>
+						{% endif %}	
                     </td>
                 </tr>
             </tbody>
